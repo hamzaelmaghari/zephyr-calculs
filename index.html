@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zephyr Mazagan Price Calculator ()</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles can be added here if needed, but Tailwind handles most of it */
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="container bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl">
+        <h1 class="text-3xl font-extrabold text-blue-700 text-center mb-6 pb-3 border-b-2 border-blue-100">
+            Zephyr Mazagan Total Cost Validator
+        </h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            
+            <div class="col-span-full mb-2">
+                <label for="roomType" class="block text-sm font-semibold text-gray-700 mb-1">Room Type</label>
+                <select id="roomType" onchange="calculateTotal()" 
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out bg-white">
+                    <option value="" disabled selected>Select a Room Type</option>
+                    <optgroup label="Adhérents F.M.6">
+                        <option value="adh_chambre">Chambre (250.00 DHS)</option>
+                        <option value="adh_suite">Suite (750.00 DHS)</option>
+                        <option value="adh_f2">Appartement F2 (400.00 DHS)</option>
+                        <option value="adh_f3">Appartement F3 (500.00 DHS)</option>
+                    </optgroup>
+                    <optgroup label="Non Adhérents - Basse Saison">
+                        <option value="na_bs_chambre">Chambre (650.00 DHS)</option>
+                        <option value="na_bs_suite">Suite (1700.00 DHS)</option>
+                        <option value="na_bs_f2">Appartement F2 (975.00 DHS)</option>
+                        <option value="na_bs_f3">Appartement F3 (1105.00 DHS)</option>
+                    </optgroup>
+                    <optgroup label="Non Adhérents - Haute Saison">
+                        <option value="na_hs_chambre">Chambre (780.00 DHS)</option>
+                        <option value="na_hs_suite">Suite (2200.00 DHS)</option>
+                        <option value="na_hs_f2">Appartement F2 (1105.00 DHS)</option>
+                        <option value="na_hs_f3">Appartement F3 (1235.00 DHS)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div>
+                <label for="nights" class="block text-sm font-semibold text-gray-700 mb-1">Number of Nights</label>
+                <input type="number" id="nights" min="1" value="1" oninput="calculateTotal()" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="adults" class="block text-sm font-semibold text-gray-700 mb-1">Adults (Taxes/Breakfast)</label>
+                <input type="number" id="adults" min="1" value="1" oninput="calculateTotal()" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="children" class="block text-sm font-semibold text-gray-700 mb-1">Children (&lt;12 Years)</label>
+                <input type="number" id="children" min="0" value="0" oninput="calculateTotal()" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="breakfastAdults" class="block text-sm font-semibold text-gray-700 mb-1">Adult Breakfasts (70 DHS/day)</label>
+                <input type="number" id="breakfastAdults" min="0" value="0" oninput="calculateTotal()" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="breakfastChildren" class="block text-sm font-semibold text-gray-700 mb-1">Child Breakfasts (35 DHS/day)</label>
+                <input type="number" id="breakfastChildren" min="0" value="0" oninput="calculateTotal()" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+        </div>
+
+        <hr class="my-6 border-gray-300">
+        
+        <div class="mb-6">
+            <label for="paidTotal" class="block text-lg font-bold text-gray-800 mb-2">Total Paid (DHS) - <span class="text-blue-600">For validation</span></label>
+            <input type="number" id="paidTotal" min="0" value="0" oninput="validateTotal()" 
+                   class="w-full p-4 text-2xl border-2 border-gray-400 rounded-lg focus:ring-blue-500 focus:border-blue-500 font-mono">
+        </div>
+
+        <div id="result" class="p-4 text-center font-bold text-xl rounded-lg border-2 mb-6 transition duration-300 ease-in-out 
+                                 bg-blue-50 border-blue-400 text-blue-800">
+            Calculated Total: 0.00 DHS
+        </div>
+
+        <div class="breakdown bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <h3 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">Cost Breakdown</h3>
+            <div class="space-y-2 text-gray-700">
+                <p class="flex justify-between">Room Total (Nights × Rate): <span id="breakdown_room" class="font-semibold text-right">0.00 DHS</span></p>
+                <p class="flex justify-between">Breakfast Total: <span id="breakdown_breakfast" class="font-semibold text-right">0.00 DHS</span></p>
+                <p class="flex justify-between border-t border-gray-200 pt-2">Stay Tax (Hôtel Rate 16.5 DHS): <span id="breakdown_tax_hotel" class="font-semibold text-right">0.00 DHS</span></p>
+                <p class="flex justify-between">Stay Tax (Appartement Rate 25.3 DHS): <span id="breakdown_tax_app" class="font-semibold text-right">0.00 DHS</span></p>
+                <p class="flex justify-between font-extrabold text-lg pt-3 border-t-2 border-gray-300">Difference (Paid - Calculated): <span id="breakdown_difference" class="text-red-600 text-right">0.00 DHS</span></p>
+            </div>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-6 pt-4 border-t border-dashed">
+            **Tariffs Reference:** Adult Breakfast: **70 DHS** | Child Breakfast: **35 DHS**. Taxe de Séjour is **16.5 DHS** (Hôtel) or **25.3 DHS** (Appartement) per adult/night.
+        </p>
+    </div>
+
+    <script>
+        const RATES = {
+            // Base Nightly Rates (DHS)
+            "adh_chambre": 250.00, "adh_suite": 750.00, "adh_f2": 400.00, "adh_f3": 500.00,
+            "na_bs_chambre": 650.00, "na_bs_suite": 1700.00, "na_bs_f2": 975.00, "na_bs_f3": 1105.00,
+            "na_hs_chambre": 780.00, "na_hs_suite": 2200.00, "na_hs_f2": 1105.00, "na_hs_f3": 1235.00
+        };
+
+        const TAXES = {
+            BREAKFAST_ADULT: 70.00, 
+            BREAKFAST_CHILD: 35.00,
+            TAXE_HOTEL: 16.50, // Per person/night
+            TAXE_APPARTEMENT: 25.30 // Per person/night
+        };
+
+        function isApartment(roomType) {
+            return roomType.includes("f2") || roomType.includes("f3");
+        }
+
+        function calculateTotal() {
+            const roomType = document.getElementById('roomType').value;
+            const nights = parseInt(document.getElementById('nights').value) || 0;
+            const adults = parseInt(document.getElementById('adults').value) || 0;
+            const paidTotal = parseFloat(document.getElementById('paidTotal').value) || 0;
+            const breakfastAdults = parseInt(document.getElementById('breakfastAdults').value) || 0;
+            const breakfastChildren = parseInt(document.getElementById('breakfastChildren').value) || 0;
+            
+            // --- 1. Room Cost ---
+            const roomRate = RATES[roomType] || 0;
+            const roomCost = roomRate * nights;
+
+            // --- 2. Breakfast Cost ---
+            const breakfastCost = (breakfastAdults * TAXES.BREAKFAST_ADULT * nights) + 
+                                  (breakfastChildren * TAXES.BREAKFAST_CHILD * nights);
+
+            // --- 3. Stay Tax (Taxe de Séjour) ---
+            let stayTax = 0;
+            let taxHotelCost = 0;
+            let taxAppCost = 0;
+            
+            if (roomType) {
+                // Taxe de Séjour is applied per person (adult) per night.
+                if (isApartment(roomType)) {
+                    stayTax = adults * nights * TAXES.TAXE_APPARTEMENT;
+                    taxAppCost = stayTax;
+                } else { // Chambre and Suite are considered Hôtel
+                    stayTax = adults * nights * TAXES.TAXE_HOTEL;
+                    taxHotelCost = stayTax;
+                }
+            }
+            
+            // --- 4. Grand Total ---
+            const grandTotal = roomCost + breakfastCost + stayTax;
+
+            // --- Update Display ---
+            document.getElementById('result').textContent = `Calculated Total: ${grandTotal.toFixed(2)} DHS`;
+            
+            // Update Breakdown
+            document.getElementById('breakdown_room').textContent = `${roomCost.toFixed(2)} DHS`;
+            document.getElementById('breakdown_breakfast').textContent = `${breakfastCost.toFixed(2)} DHS`;
+            document.getElementById('breakdown_tax_hotel').textContent = `${taxHotelCost.toFixed(2)} DHS`;
+            document.getElementById('breakdown_tax_app').textContent = `${taxAppCost.toFixed(2)} DHS`;
+            
+            validateTotal(grandTotal, paidTotal);
+        }
+
+        function validateTotal(calculatedTotal, paidTotal) {
+            // Re-fetch values if not passed (e.g., on paidTotal input change)
+            calculatedTotal = calculatedTotal !== undefined ? calculatedTotal : parseFloat(document.getElementById('result').textContent.replace('Calculated Total: ', '').replace(' DHS', '')) || 0;
+            paidTotal = paidTotal !== undefined ? paidTotal : parseFloat(document.getElementById('paidTotal').value) || 0;
+            
+            const difference = paidTotal - calculatedTotal;
+            const differenceElement = document.getElementById('breakdown_difference');
+
+            differenceElement.textContent = `${difference.toFixed(2)} DHS`;
+
+            const resultElement = document.getElementById('result');
+            // Reset classes
+            resultElement.className = "p-4 text-center font-bold text-xl rounded-lg border-2 mb-6 transition duration-300 ease-in-out";
+
+            if (paidTotal > 0 && calculatedTotal > 0) {
+                if (Math.abs(difference) < 0.01) { // Check for near-zero difference
+                    resultElement.textContent = `Total is CORRECT: ${calculatedTotal.toFixed(2)} DHS`;
+                    resultElement.classList.add('bg-green-50', 'border-green-400', 'text-green-800');
+                    differenceElement.classList.add('text-green-600');
+                    differenceElement.classList.remove('text-red-600', 'text-yellow-600');
+                } else if (difference > 0) {
+                    resultElement.textContent = `Overpaid by: ${difference.toFixed(2)} DHS (Calculated: ${calculatedTotal.toFixed(2)} DHS)`;
+                    resultElement.classList.add('bg-yellow-50', 'border-yellow-400', 'text-yellow-800');
+                    differenceElement.classList.add('text-yellow-600');
+                    differenceElement.classList.remove('text-red-600', 'text-green-600');
+                } else {
+                    resultElement.textContent = `Underpaid by: ${Math.abs(difference).toFixed(2)} DHS (Calculated: ${calculatedTotal.toFixed(2)} DHS)`;
+                    resultElement.classList.add('bg-red-50', 'border-red-400', 'text-red-800');
+                    differenceElement.classList.add('text-red-600');
+                    differenceElement.classList.remove('text-green-600', 'text-yellow-600');
+                }
+            } else {
+                resultElement.textContent = `Calculated Total: ${calculatedTotal.toFixed(2)} DHS`;
+                resultElement.classList.add('bg-blue-50', 'border-blue-400', 'text-blue-800');
+                differenceElement.classList.add('text-red-600'); // Default color for difference
+                differenceElement.classList.remove('text-green-600', 'text-yellow-600');
+            }
+        }
+        
+        // Initial call to set defaults
+        document.addEventListener('DOMContentLoaded', calculateTotal);
+    </script>
+
+</body>
+</html>
