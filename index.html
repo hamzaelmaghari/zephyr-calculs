@@ -160,9 +160,6 @@
             const roomCost = roomRate * nights;
 
             // --- 2. Breakfast Cost ---
-            // Only charge for breakfast if the board basis is RO (Room Only) or if the breakfast is selected manually
-            // Since BB is selected, we use the calculated breakfastAdults quantity, which already includes the cost in the total price, assuming the base room rate (RATES) is for RO.
-            // If the RATES already include BB, this calculation needs adjustment. Assuming RATES are Room-Only (RO) and breakfast is an add-on cost:
             const breakfastCost = (breakfastAdults * TAXES.BREAKFAST_ADULT * nights) + 
                                   (breakfastChildren * TAXES.BREAKFAST_CHILD * nights);
 
@@ -198,7 +195,6 @@
         }
 
         function validateTotal(calculatedTotal, paidTotal) {
-            // Re-fetch values if not passed (e.g., on paidTotal input change)
             calculatedTotal = calculatedTotal !== undefined ? calculatedTotal : parseFloat(document.getElementById('result').textContent.replace('Calculated Total: ', '').replace(' DHS', '')) || 0;
             paidTotal = paidTotal !== undefined ? paidTotal : parseFloat(document.getElementById('paidTotal').value) || 0;
             
