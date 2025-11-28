@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zephyr Mazagan Price Calculator ()</title>
+    <title>Zephyr Mazagan Price Calculator (Tailwind)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom styles can be added here if needed, but Tailwind handles most of it */
-    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
@@ -51,9 +48,18 @@
             </div>
 
             <div>
-                <label for="adults" class="block text-sm font-semibold text-gray-700 mb-1">Adults (Taxes/Breakfast)</label>
+                <label for="adults" class="block text-sm font-semibold text-gray-700 mb-1">Adults (Taxes/Board)</label>
                 <input type="number" id="adults" min="1" value="1" oninput="calculateTotal()" 
                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div class="col-span-full">
+                <label for="boardBasis" class="block text-sm font-semibold text-gray-700 mb-1">Board Basis</label>
+                <select id="boardBasis" onchange="calculateTotal()" 
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out bg-white">
+                    <option value="RO" selected>RO (Room Only) - No Meals Included</option>
+                    <option value="BB">BB (Bed & Breakfast) - Breakfast Included for Adults</option>
+                    </select>
             </div>
 
             <div>
@@ -62,7 +68,7 @@
                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
             </div>
 
-            <div>
+            <div id="adultBreakfastGroup">
                 <label for="breakfastAdults" class="block text-sm font-semibold text-gray-700 mb-1">Adult Breakfasts (70 DHS/day)</label>
                 <input type="number" id="breakfastAdults" min="0" value="0" oninput="calculateTotal()" 
                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -128,14 +134,35 @@
             const nights = parseInt(document.getElementById('nights').value) || 0;
             const adults = parseInt(document.getElementById('adults').value) || 0;
             const paidTotal = parseFloat(document.getElementById('paidTotal').value) || 0;
-            const breakfastAdults = parseInt(document.getElementById('breakfastAdults').value) || 0;
-            const breakfastChildren = parseInt(document.getElementById('breakfastChildren').value) || 0;
+            const boardBasis = document.getElementById('boardBasis').value;
             
+            let breakfastAdults;
+            let breakfastChildren = parseInt(document.getElementById('breakfastChildren').value) || 0;
+            
+            const adultBreakfastInput = document.getElementById('breakfastAdults');
+            const adultBreakfastGroup = document.getElementById('adultBreakfastGroup');
+            
+            // --- BB Logic: Automatically include breakfast for adults ---
+            if (boardBasis === 'BB') {
+                breakfastAdults = adults;
+                adultBreakfastInput.value = adults; // Set the value in the input field
+                adultBreakfastInput.setAttribute('readonly', 'true'); // Make it uneditable
+                adultBreakfastGroup.classList.add('opacity-75'); // Visual cue for auto-fill
+            } else {
+                breakfastAdults = parseInt(adultBreakfastInput.value) || 0; // Use user-entered value
+                adultBreakfastInput.removeAttribute('readonly'); // Make it editable
+                adultBreakfastGroup.classList.remove('opacity-75');
+            }
+
+
             // --- 1. Room Cost ---
             const roomRate = RATES[roomType] || 0;
             const roomCost = roomRate * nights;
 
             // --- 2. Breakfast Cost ---
+            // Only charge for breakfast if the board basis is RO (Room Only) or if the breakfast is selected manually
+            // Since BB is selected, we use the calculated breakfastAdults quantity, which already includes the cost in the total price, assuming the base room rate (RATES) is for RO.
+            // If the RATES already include BB, this calculation needs adjustment. Assuming RATES are Room-Only (RO) and breakfast is an add-on cost:
             const breakfastCost = (breakfastAdults * TAXES.BREAKFAST_ADULT * nights) + 
                                   (breakfastChildren * TAXES.BREAKFAST_CHILD * nights);
 
